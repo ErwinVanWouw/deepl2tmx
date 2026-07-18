@@ -20,7 +20,7 @@ Afhankelijkheden om te installeren (in een terminal):
     pip install --upgrade pysbd        # optioneel, betere zinssegmentatie
 
 Starten:
-    python deepl_memoq_vertaler.py
+    python deepl2tmx.py
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ from docx.text.paragraph import Paragraph
 
 APP_NAME = "DeepL2TMX"
 APP_VERSION = "1.0"
-CONFIG_PATH = Path.home() / ".deepl_memoq_vertaler.json"
+CONFIG_PATH = Path.home() / ".deepl2tmx.json"
 BATCH_SIZE = 40  # aantal segmenten per DeepL-verzoek
 
 # UI-naam -> (DeepL source-code, DeepL target-code, TMX/XLIFF xml:lang-code)

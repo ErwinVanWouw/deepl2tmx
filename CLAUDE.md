@@ -9,24 +9,25 @@ tool. It reads a monolingual `.docx`, segments the text into sentences, translat
 each segment via the DeepL API, and writes an aligned bilingual **TMX** and
 **XLIFF** (plus a plain-text analysis) for use in any CAT tool that supports those
 generic formats (memoQ, Trados Studio, Wordfast, CafeTran, etc.) — not tied to
-memoQ specifically. All logic lives in `deepl_memoq_vertaler.py`.
+memoQ specifically. All logic lives in `deepl2tmx.py`.
 
-The script filename (`deepl_memoq_vertaler.py`) and the config file path
-(`~/.deepl_memoq_vertaler.json`) are intentionally left unchanged despite the
-app/project rename — renaming either would break existing shortcuts/launchers and
-silently drop colleagues' remembered API keys. Only the *displayed* name (`APP_NAME`)
-and prose/docs were updated.
+The script was renamed from `deepl_memoq_vertaler.py` to `deepl2tmx.py`, and the
+config file from `~/.deepl_memoq_vertaler.json` to `~/.deepl2tmx.json`, alongside
+the app/project rename. This was safe because at the time there was only a single
+user with no external shortcuts/launchers depending on the old names. If this
+tool ever gets more users, renaming the script or config path again needs the same
+care: it breaks anyone's existing launcher and drops their remembered API key.
 
 ## Run & develop
 
 ```
 pip install -r requirements.txt      # deepl, python-docx, pysbd (pysbd optional)
-python deepl_memoq_vertaler.py        # launches the tkinter window
+python deepl2tmx.py                   # launches the tkinter window
 ```
 
 There is no build step and no test suite yet.
 
-## File layout of `deepl_memoq_vertaler.py` (in order)
+## File layout of `deepl2tmx.py` (in order)
 
 1. Constants: `LANGUAGES`, `BATCH_SIZE`, `CONFIG_PATH`.
 2. `.docx` reading: `_iter_block_items`, `_iter_table_texts`, `read_docx_paragraphs`.
@@ -97,4 +98,4 @@ line up. Keep new logic in the non-GUI functions so it can be tested this way; k
 ## Never
 
 - Never commit or log a DeepL API key. The key lives in
-  `~/.deepl_memoq_vertaler.json` (home folder, outside the repo) and is git-ignored.
+  `~/.deepl2tmx.json` (home folder, outside the repo) and is git-ignored.

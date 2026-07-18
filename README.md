@@ -25,12 +25,12 @@ fallback splitter is used.
 ## Usage
 
 ```
-python deepl_memoq_vertaler.py
+python deepl2tmx.py
 ```
 
 A window opens. Enter your DeepL API key, pick the source `.docx`, choose the
 languages, and click **Vertalen**. The key can be remembered; it is then stored in
-`~/.deepl_memoq_vertaler.json` in your home folder – never inside this project.
+`~/.deepl2tmx.json` in your home folder – never inside this project.
 
 ## Output routing
 
