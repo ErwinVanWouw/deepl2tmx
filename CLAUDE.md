@@ -4,12 +4,18 @@ Guidance for Claude Code when working in this repository.
 
 ## What this project is
 
-`deepl2memoq` is a single-file desktop tool. It reads a monolingual `.docx`,
-segments the text into sentences, translates each segment via the DeepL API, and
-writes an aligned bilingual **TMX** and **XLIFF** (plus a plain-text analysis) for
-use in any CAT tool that supports those generic formats (memoQ, Trados Studio,
-Wordfast, CafeTran, etc.) — not tied to memoQ specifically. All logic lives in
-`deepl_memoq_vertaler.py`.
+`deepl2tmx` (app name shown in the GUI: **DeepL2TMX**) is a single-file desktop
+tool. It reads a monolingual `.docx`, segments the text into sentences, translates
+each segment via the DeepL API, and writes an aligned bilingual **TMX** and
+**XLIFF** (plus a plain-text analysis) for use in any CAT tool that supports those
+generic formats (memoQ, Trados Studio, Wordfast, CafeTran, etc.) — not tied to
+memoQ specifically. All logic lives in `deepl_memoq_vertaler.py`.
+
+The script filename (`deepl_memoq_vertaler.py`) and the config file path
+(`~/.deepl_memoq_vertaler.json`) are intentionally left unchanged despite the
+app/project rename — renaming either would break existing shortcuts/launchers and
+silently drop colleagues' remembered API keys. Only the *displayed* name (`APP_NAME`)
+and prose/docs were updated.
 
 ## Run & develop
 

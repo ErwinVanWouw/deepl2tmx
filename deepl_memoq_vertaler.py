@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DeepL -> memoQ vertaler
-=======================
+DeepL2TMX
+=========
 
 Leest een eentalige .docx in, segmenteert de tekst op zinsniveau, vertaalt elke
 zin via de DeepL API en schrijft het resultaat weg als:
@@ -40,7 +40,7 @@ from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
 
-APP_NAME = "DeepL -> memoQ vertaler"
+APP_NAME = "DeepL2TMX"
 APP_VERSION = "1.0"
 CONFIG_PATH = Path.home() / ".deepl_memoq_vertaler.json"
 BATCH_SIZE = 40  # aantal segmenten per DeepL-verzoek

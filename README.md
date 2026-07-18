@@ -1,4 +1,4 @@
-# deepl2memoq
+# deepl2tmx (DeepL2TMX)
 
 A small local Python app that turns a monolingual `.docx` into DeepL-translated,
 sentence-aligned **TMX** and **XLIFF** files ready for import into any CAT tool
