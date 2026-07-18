@@ -4,28 +4,37 @@ Guidance for Claude Code when working in this repository.
 
 ## What this project is
 
-`deepl2memoq` is a single-file desktop tool. It reads a monolingual `.docx`,
-segments the text into sentences, translates each segment via the DeepL API, and
-writes an aligned bilingual **TMX** and **XLIFF** (plus a plain-text analysis) for
-use in memoQ. All logic lives in `deepl_memoq_vertaler.py`.
+`deepl2tmx` (app name shown in the GUI: **DeepL2TMX**) is a single-file desktop
+tool. It reads a monolingual `.docx`, segments the text into sentences, translates
+each segment via the DeepL API, and writes an aligned bilingual **TMX** and
+**XLIFF** (plus a plain-text analysis) for use in any CAT tool that supports those
+generic formats (memoQ, Trados Studio, Wordfast, CafeTran, etc.) — not tied to
+memoQ specifically. All logic lives in `deepl2tmx.py`.
+
+The script was renamed from `deepl_memoq_vertaler.py` to `deepl2tmx.py`, and the
+config file from `~/.deepl_memoq_vertaler.json` to `~/.deepl2tmx.json`, alongside
+the app/project rename. This was safe because at the time there was only a single
+user with no external shortcuts/launchers depending on the old names. If this
+tool ever gets more users, renaming the script or config path again needs the same
+care: it breaks anyone's existing launcher and drops their remembered API key.
 
 ## Run & develop
 
 ```
 pip install -r requirements.txt      # deepl, python-docx, pysbd (pysbd optional)
-python deepl_memoq_vertaler.py        # launches the tkinter window
+python deepl2tmx.py                   # launches the tkinter window
 ```
 
 There is no build step and no test suite yet.
 
-## File layout of `deepl_memoq_vertaler.py` (in order)
+## File layout of `deepl2tmx.py` (in order)
 
 1. Constants: `LANGUAGES`, `BATCH_SIZE`, `CONFIG_PATH`.
 2. `.docx` reading: `_iter_block_items`, `_iter_table_texts`, `read_docx_paragraphs`.
 3. Segmentation: `_fallback_split`, pysbd loader, `segment_paragraph`, `segment_document`.
 4. `DeepLClient` — thin wrapper around the `deepl` library.
 5. Output writers: `write_tmx`, `write_xliff`.
-6. Analysis + routing: `compute_stats`, `write_stats`, `resolve_output_dirs`, `output_paths`.
+6. Analysis + routing: `compute_stats`, `write_stats`, `output_paths`.
 7. `process_file` — orchestration (read → segment → translate → write).
 8. Config: `load_config`, `save_config`.
 9. `launch_gui` — the tkinter interface.
@@ -39,11 +48,10 @@ There is no build step and no test suite yet.
   returns results in the same order, giving clean source↔target pairs for TMX/XLIFF.
   `split_sentences="0"` is set because the text is already segmented. Never merge or
   reorder segments between source and translation.
-- **Output routing.** `resolve_output_dirs` derives the project folder from the
-  source file (the folder above `Translatables`) and routes TMX/XLIFF to
-  `Reference files` and the analysis to `Statistics`. A manual mode sends everything
-  to one chosen folder. `output_paths` is the single source of truth for filenames —
-  both the GUI conflict check and `process_file` call it, so they must stay in sync.
+- **Output routing.** The user always picks the output folder by hand; TMX, XLIFF
+  and the analysis all go into that one folder. There is no automatic project-folder
+  detection. `output_paths` is the single source of truth for filenames — both the
+  GUI conflict check and `process_file` call it, so they must stay in sync.
 - **Overwrite protection.** The GUI checks for existing target files *before*
   starting the worker thread and asks per file (a dialog may only run on the main
   thread). Skipped paths are passed to `process_file` as `skip`. If both TMX and
@@ -63,7 +71,14 @@ There is no build step and no test suite yet.
 - **DeepL Free vs Pro/Growth.** The `deepl` library auto-selects the endpoint from
   the key (only Free keys end in `:fx`). No manual endpoint switching needed.
 - **Plain text only.** Inline formatting/tags are flattened; word counts are
-  whitespace-based approximations and may differ slightly from memoQ.
+  whitespace-based approximations and may differ slightly from the counts in the
+  CAT tool the files get imported into.
+- **Generic XLIFF, not MQXLIFF.** The XLIFF output is plain XLIFF 1.2 (`source`/
+  `target` per `trans-unit`), not memoQ's proprietary `.mqxliff` flavour. That's
+  intentional: MQXLIFF carries memoQ-only project metadata (segment status,
+  versioning, TM match info) this tool has no source for, and generic XLIFF is
+  importable in effectively every CAT tool, including memoQ (via its XLIFF
+  filter). Don't try to emit MQXLIFF-specific extensions here.
 
 ## Testing convention
 
@@ -83,4 +98,4 @@ line up. Keep new logic in the non-GUI functions so it can be tested this way; k
 ## Never
 
 - Never commit or log a DeepL API key. The key lives in
-  `~/.deepl_memoq_vertaler.json` (home folder, outside the repo) and is git-ignored.
+  `~/.deepl2tmx.json` (home folder, outside the repo) and is git-ignored.

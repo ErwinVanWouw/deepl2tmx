@@ -13,7 +13,7 @@ env/
 Thumbs.db
 
 # Persoonlijke config met DeepL API-sleutel.
-# Deze staat normaal in je home-map (~/.deepl_memoq_vertaler.json), niet hier,
+# Deze staat normaal in je home-map (~/.deepl2tmx.json), niet hier,
 # maar voor de zekerheid ook hier uitgesloten mocht je hem ooit lokaal neerzetten.
-.deepl_memoq_vertaler.json
+.deepl2tmx.json
 *deepl*key*
