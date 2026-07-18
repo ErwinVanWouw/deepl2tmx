@@ -44,6 +44,7 @@ APP_NAME = "DeepL2TMX"
 APP_VERSION = "1.0"
 CONFIG_PATH = Path.home() / ".deepl2tmx.json"
 BATCH_SIZE = 40  # aantal segmenten per DeepL-verzoek
+ICON_DIR = Path(__file__).resolve().parent
 
 # UI-naam -> (DeepL source-code, DeepL target-code, TMX/XLIFF xml:lang-code)
 LANGUAGES = {
@@ -417,6 +418,18 @@ def launch_gui():
     root.title(f"{APP_NAME} {APP_VERSION}")
     root.geometry("640x560")
     root.minsize(560, 480)
+
+    # .ico werkt alleen native op Windows; iconphoto met de PNG is de
+    # cross-platform fallback voor de titelbalk op Linux/macOS.
+    try:
+        root.iconbitmap(default=str(ICON_DIR / "icon.ico"))
+    except Exception:
+        pass
+    try:
+        icon_img = tk.PhotoImage(file=str(ICON_DIR / "icon.png"))
+        root.iconphoto(True, icon_img)
+    except Exception:
+        pass
 
     pad = {"padx": 10, "pady": 4}
     frm = ttk.Frame(root, padding=12)
