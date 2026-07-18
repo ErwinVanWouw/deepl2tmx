@@ -454,14 +454,16 @@ def launch_gui():
     ttk.Button(frm, text="Kies...", command=choose_file).grid(row=row, column=3, **pad)
 
     row += 1
-    ttk.Label(frm, text="Van:").grid(row=row, column=0, sticky="w", **pad)
+    lang_frame = ttk.Frame(frm)
+    lang_frame.grid(row=row, column=0, columnspan=4, sticky="w", **pad)
+    ttk.Label(lang_frame, text="Van:").pack(side="left")
     src_var = tk.StringVar(value=cfg.get("src", "Engels"))
-    ttk.Combobox(frm, textvariable=src_var, values=list(LANGUAGES), state="readonly",
-                 width=15).grid(row=row, column=1, sticky="w", **pad)
-    ttk.Label(frm, text="Naar:").grid(row=row, column=2, sticky="e", **pad)
+    ttk.Combobox(lang_frame, textvariable=src_var, values=list(LANGUAGES), state="readonly",
+                 width=15).pack(side="left", padx=(4, 16))
+    ttk.Label(lang_frame, text="Naar:").pack(side="left")
     tgt_var = tk.StringVar(value=cfg.get("tgt", "Nederlands"))
-    ttk.Combobox(frm, textvariable=tgt_var, values=list(LANGUAGES), state="readonly",
-                 width=15).grid(row=row, column=3, sticky="w", **pad)
+    ttk.Combobox(lang_frame, textvariable=tgt_var, values=list(LANGUAGES), state="readonly",
+                 width=15).pack(side="left", padx=(4, 0))
 
     row += 1
     ttk.Label(frm, text="Formaliteit:").grid(row=row, column=0, sticky="w", **pad)
@@ -471,12 +473,13 @@ def launch_gui():
                  width=15).grid(row=row, column=1, sticky="w", **pad)
 
     row += 1
+    output_frame = ttk.Frame(frm)
+    output_frame.grid(row=row, column=0, columnspan=4, sticky="w", **pad)
     tmx_var = tk.BooleanVar(value=cfg.get("tmx", True))
     xlf_var = tk.BooleanVar(value=cfg.get("xliff", True))
-    ttk.Checkbutton(frm, text="TMX (voor je TM / pre-translate)", variable=tmx_var).grid(
-        row=row, column=0, columnspan=2, sticky="w", **pad)
-    ttk.Checkbutton(frm, text="XLIFF (bilingueel document)", variable=xlf_var).grid(
-        row=row, column=2, columnspan=2, sticky="w", **pad)
+    ttk.Checkbutton(output_frame, text="TMX", variable=tmx_var).pack(side="left")
+    ttk.Checkbutton(output_frame, text="XLIFF", variable=xlf_var).pack(
+        side="left", padx=(16, 0))
 
     row += 1
     ttk.Label(frm, text="Uitvoermap:").grid(row=row, column=0, sticky="w", **pad)
