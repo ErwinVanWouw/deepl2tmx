@@ -4,22 +4,22 @@
 DeepL2TMX
 =========
 
-Leest een eentalige .docx in, segmenteert de tekst op zinsniveau, vertaalt elke
-zin via de DeepL API en schrijft het resultaat weg als:
+Reads a monolingual .docx, segments the text into sentences, translates each
+sentence through the DeepL API, and writes the result as:
 
-  * een tweetalige TMX  (translation memory, voor pre-translate in je CAT-tool)
-  * een tweetalige XLIFF (generiek XLIFF 1.2, bilingueel document, importeerbaar
-    in vrijwel elke CAT-tool)
+  * a bilingual TMX  (translation memory, for pre-translate in your CAT tool)
+  * a bilingual XLIFF (generic XLIFF 1.2, bilingual document, importable into
+    virtually any CAT tool)
 
-Alleen standaardbibliotheken worden bovenaan geimporteerd, plus python-docx.
-`deepl` en `tkinter` worden pas geladen wanneer ze nodig zijn, zodat de
-kernfuncties los te testen/importeren zijn.
+Only standard-library modules are imported at the top, plus python-docx.
+`deepl` and `tkinter` are imported only when needed, so the core functions can
+be tested/imported independently.
 
-Afhankelijkheden om te installeren (in een terminal):
+Dependencies to install (in a terminal):
     pip install --upgrade deepl python-docx
-    pip install --upgrade pysbd        # optioneel, betere zinssegmentatie
+    pip install --upgrade pysbd        # optional, better sentence segmentation
 
-Starten:
+Start:
     python deepl2tmx.py
 """
 
@@ -48,11 +48,11 @@ ICON_DIR = Path(__file__).resolve().parent
 
 # UI-naam -> (DeepL source-code, DeepL target-code, TMX/XLIFF xml:lang-code)
 LANGUAGES = {
-    "Engels": ("EN", "EN-US", "en"),
-    "Nederlands": ("NL", "NL", "nl"),
-    "Duits": ("DE", "DE", "de"),
-    "Frans": ("FR", "FR", "fr"),
-    "Spaans": ("ES", "ES", "es"),
+    "English": ("EN", "EN-US", "en"),
+    "Dutch": ("NL", "NL", "nl"),
+    "German": ("DE", "DE", "de"),
+    "French": ("FR", "FR", "fr"),
+    "Spanish": ("ES", "ES", "es"),
 }
 
 
@@ -192,8 +192,8 @@ class DeepLClient:
         formality_arg = None
         if formality and formality != "default":
             # prefer_* degradeert netjes bij talen zonder formaliteit
-            formality_arg = {"formeel": "prefer_more",
-                             "informeel": "prefer_less"}.get(formality, formality)
+            formality_arg = {"formal": "prefer_more",
+                             "informal": "prefer_less"}.get(formality, formality)
 
         results = []
         total = len(texts)
@@ -284,19 +284,19 @@ def compute_stats(segments):
 def write_stats(out_path, docx_name, src_xml, tgt_xml, stats):
     n_seg, n_words, n_chars, n_chars_ns = stats
     lines = [
-        "Analyse",
-        "=======",
-        f"Bestand:           {docx_name}",
-        f"Talencombinatie:   {src_xml} -> {tgt_xml}",
-        f"Datum:             {datetime.now():%Y-%m-%d %H:%M}",
+        "Analysis",
+        "========",
+        f"{'File:'.ljust(17)}{docx_name}",
+        f"{'Language pair:'.ljust(17)}{src_xml} -> {tgt_xml}",
+        f"{'Date:'.ljust(17)}{datetime.now():%Y-%m-%d %H:%M}",
         "",
-        f"Segmenten:                    {_fmt(n_seg)}",
-        f"Woorden (bron):               {_fmt(n_words)}",
-        f"Tekens (bron, incl. spaties): {_fmt(n_chars)}",
-        f"Tekens (bron, excl. spaties): {_fmt(n_chars_ns)}",
+        f"{'Segments:'.ljust(37)}{_fmt(n_seg)}",
+        f"{'Words (source):'.ljust(37)}{_fmt(n_words)}",
+        f"{'Characters (source, incl. spaces):'.ljust(37)}{_fmt(n_chars)}",
+        f"{'Characters (source, excl. spaces):'.ljust(37)}{_fmt(n_chars_ns)}",
         "",
-        "Woorden geteld als reeksen tekst gescheiden door spaties; dit kan licht",
-        "afwijken van de telling in je CAT-tool.",
+        "Words are counted as sequences of text separated by spaces; this may",
+        "differ slightly from the count in your CAT tool.",
     ]
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -313,7 +313,7 @@ def output_paths(docx_path, out_dir, src_name, tgt_name):
     return {
         "tmx": out_dir / f"{stem}_{tag}.tmx",
         "xliff": out_dir / f"{stem}_{tag}.xlf",
-        "stats": out_dir / f"{stem}_analyse.txt",
+        "stats": out_dir / f"{stem}_analysis.txt",
     }
 
 
@@ -335,16 +335,16 @@ def process_file(docx_path, api_key, src_name, tgt_name, out_dir,
                                   (make_xliff, do_xliff, "xliff"),
                                   (make_stats, do_stats, "stats")):
         if flag_on and not will_do:
-            log(f"Overgeslagen (bestaat al): {paths[key].name}")
+            log(f"Skipped (already exists): {paths[key].name}")
 
-    log(f"Bestand inlezen: {docx_path.name}")
+    log(f"Reading file: {docx_path.name}")
     paragraphs = read_docx_paragraphs(docx_path)
-    log(f"  {len(paragraphs)} alinea's gevonden.")
+    log(f"  {len(paragraphs)} paragraphs found.")
 
     segments = segment_document(paragraphs, src_xml)
-    log(f"  {len(segments)} segmenten na segmentatie.")
+    log(f"  {len(segments)} segments after segmentation.")
     if not segments:
-        raise ValueError("Geen tekst gevonden om te vertalen.")
+        raise ValueError("No text found to translate.")
 
     stats = compute_stats(segments)
     written = []
@@ -353,35 +353,35 @@ def process_file(docx_path, api_key, src_name, tgt_name, out_dir,
         Path(out_dir).mkdir(parents=True, exist_ok=True)
 
     if do_tmx or do_xliff:
-        log(f"  {_fmt(stats[1])} woorden / ~{_fmt(stats[2])} tekens naar DeepL.")
+        log(f"  {_fmt(stats[1])} words / ~{_fmt(stats[2])} characters sent to DeepL.")
         client = DeepLClient(api_key)
-        log(f"Vertalen ({src_deepl} -> {tgt_deepl})...")
+        log(f"Translating ({src_deepl} -> {tgt_deepl})...")
         translations = client.translate(
             segments, src_deepl, tgt_deepl, formality=formality, progress=progress
         )
         if len(translations) != len(segments):
             raise RuntimeError(
-                f"Aantal vertalingen ({len(translations)}) wijkt af van aantal "
-                f"segmenten ({len(segments)})."
+                f"Number of translations ({len(translations)}) does not match "
+                f"number of segments ({len(segments)})."
             )
         pairs = list(zip(segments, translations))
 
         if do_tmx:
             write_tmx(pairs, src_xml, tgt_xml, paths["tmx"])
             written.append(paths["tmx"])
-            log(f"TMX geschreven -> {paths['tmx']}")
+            log(f"TMX written -> {paths['tmx']}")
 
         if do_xliff:
             write_xliff(pairs, src_xml, tgt_xml, docx_path.name, paths["xliff"])
             written.append(paths["xliff"])
-            log(f"XLIFF geschreven -> {paths['xliff']}")
+            log(f"XLIFF written -> {paths['xliff']}")
 
     if do_stats:
         write_stats(paths["stats"], docx_path.name, src_xml, tgt_xml, stats)
         written.append(paths["stats"])
-        log(f"Analyse geschreven -> {paths['stats']}")
+        log(f"Analysis written -> {paths['stats']}")
 
-    log("Klaar.")
+    log("Done.")
     return written
 
 
@@ -436,17 +436,21 @@ def launch_gui():
     frm.pack(fill="both", expand=True)
     frm.columnconfigure(1, weight=1)
 
+    def cfg_choice(key, default, valid_values):
+        value = cfg.get(key, default)
+        return value if value in valid_values else default
+
     row = 0
-    ttk.Label(frm, text="DeepL API-sleutel:").grid(row=row, column=0, sticky="w", **pad)
+    ttk.Label(frm, text="DeepL API key:").grid(row=row, column=0, sticky="w", **pad)
     key_var = tk.StringVar(value=cfg.get("api_key", ""))
     key_entry = ttk.Entry(frm, textvariable=key_var, show="*")
     key_entry.grid(row=row, column=1, columnspan=2, sticky="ew", **pad)
     remember_var = tk.BooleanVar(value=bool(cfg.get("api_key")))
-    ttk.Checkbutton(frm, text="Onthouden", variable=remember_var).grid(
+    ttk.Checkbutton(frm, text="Remember", variable=remember_var).grid(
         row=row, column=3, sticky="w", **pad)
 
     row += 1
-    ttk.Label(frm, text="Bronbestand (.docx):").grid(row=row, column=0, sticky="w", **pad)
+    ttk.Label(frm, text="Source file (.docx):").grid(row=row, column=0, sticky="w", **pad)
     file_var = tk.StringVar(value="")
 
     def choose_file():
@@ -456,33 +460,34 @@ def launch_gui():
         elif cfg.get("last_src_dir"):
             init = cfg.get("last_src_dir")
         path = filedialog.askopenfilename(
-            title="Kies een .docx-bestand",
+            title="Choose a .docx file",
             initialdir=init,
-            filetypes=[("Word-document", "*.docx"), ("Alle bestanden", "*.*")],
+            filetypes=[("Word document", "*.docx"), ("All files", "*.*")],
         )
         if path:
             file_var.set(path)
 
     ttk.Entry(frm, textvariable=file_var).grid(row=row, column=1, columnspan=2, sticky="ew", **pad)
-    ttk.Button(frm, text="Kies...", command=choose_file).grid(row=row, column=3, **pad)
+    ttk.Button(frm, text="Choose...", command=choose_file).grid(row=row, column=3, **pad)
 
     row += 1
     lang_frame = ttk.Frame(frm)
     lang_frame.grid(row=row, column=0, columnspan=4, sticky="w", **pad)
-    ttk.Label(lang_frame, text="Van:").pack(side="left")
-    src_var = tk.StringVar(value=cfg.get("src", "Engels"))
+    ttk.Label(lang_frame, text="From:").pack(side="left")
+    src_var = tk.StringVar(value=cfg_choice("src", "English", LANGUAGES))
     ttk.Combobox(lang_frame, textvariable=src_var, values=list(LANGUAGES), state="readonly",
                  width=15).pack(side="left", padx=(4, 16))
-    ttk.Label(lang_frame, text="Naar:").pack(side="left")
-    tgt_var = tk.StringVar(value=cfg.get("tgt", "Nederlands"))
+    ttk.Label(lang_frame, text="To:").pack(side="left")
+    tgt_var = tk.StringVar(value=cfg_choice("tgt", "Dutch", LANGUAGES))
     ttk.Combobox(lang_frame, textvariable=tgt_var, values=list(LANGUAGES), state="readonly",
                  width=15).pack(side="left", padx=(4, 0))
 
     row += 1
-    ttk.Label(frm, text="Formaliteit:").grid(row=row, column=0, sticky="w", **pad)
-    form_var = tk.StringVar(value=cfg.get("formality", "default"))
+    ttk.Label(frm, text="Formality:").grid(row=row, column=0, sticky="w", **pad)
+    formality_options = ["default", "formal", "informal"]
+    form_var = tk.StringVar(value=cfg_choice("formality", "default", formality_options))
     ttk.Combobox(frm, textvariable=form_var,
-                 values=["default", "formeel", "informeel"], state="readonly",
+                 values=formality_options, state="readonly",
                  width=15).grid(row=row, column=1, sticky="w", **pad)
 
     row += 1
@@ -495,27 +500,27 @@ def launch_gui():
         side="left", padx=(16, 0))
 
     row += 1
-    ttk.Label(frm, text="Uitvoermap:").grid(row=row, column=0, sticky="w", **pad)
+    ttk.Label(frm, text="Output folder:").grid(row=row, column=0, sticky="w", **pad)
     outdir_var = tk.StringVar(value=cfg.get("outdir", ""))
     outdir_entry = ttk.Entry(frm, textvariable=outdir_var)
     outdir_entry.grid(row=row, column=1, columnspan=2, sticky="ew", **pad)
 
     def choose_outdir():
-        d = filedialog.askdirectory(title="Kies uitvoermap")
+        d = filedialog.askdirectory(title="Choose output folder")
         if d:
             outdir_var.set(d)
 
-    outdir_btn = ttk.Button(frm, text="Kies...", command=choose_outdir)
+    outdir_btn = ttk.Button(frm, text="Choose...", command=choose_outdir)
     outdir_btn.grid(row=row, column=3, **pad)
 
     row += 1
     stats_var = tk.BooleanVar(value=cfg.get("stats", True))
-    ttk.Checkbutton(frm, text="Analyse schrijven (segmenten + woorden)",
+    ttk.Checkbutton(frm, text="Write analysis (segments + words)",
                     variable=stats_var).grid(row=row, column=0, columnspan=3,
                                              sticky="w", **pad)
 
     row += 1
-    run_btn = ttk.Button(frm, text="Vertalen")
+    run_btn = ttk.Button(frm, text="Translate")
     run_btn.grid(row=row, column=0, **pad)
     prog = ttk.Progressbar(frm, mode="determinate")
     prog.grid(row=row, column=1, columnspan=3, sticky="ew", **pad)
@@ -548,7 +553,7 @@ def launch_gui():
                     if payload:
                         messagebox.showinfo(
                             APP_NAME,
-                            "Klaar. Geschreven bestanden:\n\n"
+                            "Done. Files written:\n\n"
                             + "\n".join(Path(p).name for p in payload),
                         )
                 elif kind == "error":
@@ -568,26 +573,26 @@ def launch_gui():
             )
             log_queue.put(("done", written))
         except Exception as exc:  # noqa: BLE001
-            ui_log(f"FOUT: {exc}")
+            ui_log(f"ERROR: {exc}")
             log_queue.put(("error", exc))
 
     def on_run():
         path = file_var.get().strip()
         key = key_var.get().strip()
         if (tmx_var.get() or xlf_var.get()) and not key:
-            messagebox.showwarning(APP_NAME, "Vul je DeepL API-sleutel in.")
+            messagebox.showwarning(APP_NAME, "Enter your DeepL API key.")
             return
         if not path or not Path(path).exists():
-            messagebox.showwarning(APP_NAME, "Kies een geldig .docx-bestand.")
+            messagebox.showwarning(APP_NAME, "Choose a valid .docx file.")
             return
         if not tmx_var.get() and not xlf_var.get() and not stats_var.get():
             messagebox.showwarning(APP_NAME,
-                                   "Kies minstens een uitvoer (TMX, XLIFF of analyse).")
+                                   "Choose at least one output (TMX, XLIFF, or analysis).")
             return
 
         out_dir = outdir_var.get().strip()
         if not out_dir:
-            messagebox.showwarning(APP_NAME, "Kies een uitvoermap.")
+            messagebox.showwarning(APP_NAME, "Choose an output folder.")
             return
 
         # Conflictcheck: per reeds bestaand doelbestand vragen om te overschrijven.
@@ -605,14 +610,14 @@ def launch_gui():
             if target.exists():
                 overwrite = messagebox.askyesno(
                     APP_NAME,
-                    f"'{target.name}' bestaat al in:\n{target.parent}\n\nOverschrijven?",
+                    f"'{target.name}' already exists in:\n{target.parent}\n\nOverwrite?",
                 )
                 if not overwrite:
                     skip.add(str(target))
 
         if selected and len(skip) == len(selected):
             messagebox.showinfo(
-                APP_NAME, "Niets te doen: alle bestaande bestanden overgeslagen.")
+                APP_NAME, "Nothing to do: all existing files were skipped.")
             return
 
         save_config({

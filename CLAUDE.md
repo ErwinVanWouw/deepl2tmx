@@ -95,8 +95,19 @@ line up. Keep new logic in the non-GUI functions so it can be tested this way; k
 
 ## Conventions
 
-- **Language split:** UI strings and code comments are in **Dutch**; the README and
-  this file are in **English**. Keep that split when editing.
+- **Language split:** everything user-facing is in **English** — GUI labels/buttons,
+  dialog text, log/progress messages, the `write_stats` analysis output, and the
+  module docstring at the top of `deepl2tmx.py`. Inline implementation comments
+  (the short `# ...` notes inside function bodies) stay in **Dutch** — the author's
+  working language. README and this file are in English too. Keep that split when
+  editing; don't translate comments and don't let new UI strings slip into Dutch.
+- The `LANGUAGES` dict keys (`"English"`, `"Dutch"`, `"German"`, `"French"`,
+  `"Spanish"`) are themselves UI text — they're what fills the Van/To (From/To)
+  dropdowns and get stored verbatim in `~/.deepl2tmx.json` as `src`/`tgt`. The GUI
+  reads config values through a small `cfg_choice()` helper that falls back to the
+  default if the stored value isn't a valid key — this is what keeps an older config
+  file (e.g. one saved before the English rename, with values like `"Engels"`) from
+  crashing the app instead of matching nothing in `LANGUAGES`.
 - In any prose/docs, use **en-dashes**, not em-dashes.
 - Keep everything in the single script unless there's a clear reason to split it.
 
