@@ -7,8 +7,9 @@ DeepL -> memoQ vertaler
 Leest een eentalige .docx in, segmenteert de tekst op zinsniveau, vertaalt elke
 zin via de DeepL API en schrijft het resultaat weg als:
 
-  * een tweetalige TMX  (translation memory, voor pre-translate in memoQ)
-  * een tweetalige XLIFF (bilingueel document, target staat meteen in het raster)
+  * een tweetalige TMX  (translation memory, voor pre-translate in je CAT-tool)
+  * een tweetalige XLIFF (generiek XLIFF 1.2, bilingueel document, importeerbaar
+    in vrijwel elke CAT-tool)
 
 Alleen standaardbibliotheken worden bovenaan geimporteerd, plus python-docx.
 `deepl` en `tkinter` worden pas geladen wanneer ze nodig zijn, zodat de
@@ -294,7 +295,7 @@ def write_stats(out_path, docx_name, src_xml, tgt_xml, stats):
         f"Tekens (bron, excl. spaties): {_fmt(n_chars_ns)}",
         "",
         "Woorden geteld als reeksen tekst gescheiden door spaties; dit kan licht",
-        "afwijken van de telling in memoQ.",
+        "afwijken van de telling in je CAT-tool.",
     ]
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
 

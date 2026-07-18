@@ -7,7 +7,9 @@ Guidance for Claude Code when working in this repository.
 `deepl2memoq` is a single-file desktop tool. It reads a monolingual `.docx`,
 segments the text into sentences, translates each segment via the DeepL API, and
 writes an aligned bilingual **TMX** and **XLIFF** (plus a plain-text analysis) for
-use in memoQ. All logic lives in `deepl_memoq_vertaler.py`.
+use in any CAT tool that supports those generic formats (memoQ, Trados Studio,
+Wordfast, CafeTran, etc.) — not tied to memoQ specifically. All logic lives in
+`deepl_memoq_vertaler.py`.
 
 ## Run & develop
 
@@ -62,7 +64,14 @@ There is no build step and no test suite yet.
 - **DeepL Free vs Pro/Growth.** The `deepl` library auto-selects the endpoint from
   the key (only Free keys end in `:fx`). No manual endpoint switching needed.
 - **Plain text only.** Inline formatting/tags are flattened; word counts are
-  whitespace-based approximations and may differ slightly from memoQ.
+  whitespace-based approximations and may differ slightly from the counts in the
+  CAT tool the files get imported into.
+- **Generic XLIFF, not MQXLIFF.** The XLIFF output is plain XLIFF 1.2 (`source`/
+  `target` per `trans-unit`), not memoQ's proprietary `.mqxliff` flavour. That's
+  intentional: MQXLIFF carries memoQ-only project metadata (segment status,
+  versioning, TM match info) this tool has no source for, and generic XLIFF is
+  importable in effectively every CAT tool, including memoQ (via its XLIFF
+  filter). Don't try to emit MQXLIFF-specific extensions here.
 
 ## Testing convention
 
