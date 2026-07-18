@@ -29,7 +29,7 @@ python deepl2tmx.py
 ```
 
 A window opens. Enter your DeepL API key, pick the source `.docx`, choose the
-languages, and click **Vertalen**. The key can be remembered; it is then stored in
+languages, and click **Translate**. The key can be remembered; it is then stored in
 `~/.deepl2tmx.json` in your home folder – never inside this project.
 
 ## Output routing
