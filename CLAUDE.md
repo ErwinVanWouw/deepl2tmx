@@ -29,7 +29,7 @@ There is no build step and no test suite yet.
 
 ## File layout of `deepl2tmx.py` (in order)
 
-1. Constants: `LANGUAGES`, `BATCH_SIZE`, `CONFIG_PATH`.
+1. Constants: `LANGUAGES`, `BATCH_SIZE`, `CONFIG_PATH`, `ICON_DIR`.
 2. `.docx` reading: `_iter_block_items`, `_iter_table_texts`, `read_docx_paragraphs`.
 3. Segmentation: `_fallback_split`, pysbd loader, `segment_paragraph`, `segment_document`.
 4. `DeepLClient` — thin wrapper around the `deepl` library.
@@ -60,6 +60,11 @@ There is no build step and no test suite yet.
 - **Threading.** Translation runs in a background thread; it talks to the GUI only
   through a `queue.Queue` polled by `root.after`. Do not touch tkinter widgets from
   the worker thread.
+- **Window icon.** `icon.ico` (Windows title bar/taskbar) and `icon.png`
+  (cross-platform `iconphoto` fallback for Linux/macOS) live next to the script and
+  are loaded via `ICON_DIR = Path(__file__).resolve().parent`. Both loads are
+  wrapped in `try/except` so a missing or unloadable icon file never prevents the
+  GUI from starting — it just falls back to Tk's default icon.
 
 ## Gotchas
 
