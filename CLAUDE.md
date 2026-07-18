@@ -25,7 +25,7 @@ There is no build step and no test suite yet.
 3. Segmentation: `_fallback_split`, pysbd loader, `segment_paragraph`, `segment_document`.
 4. `DeepLClient` — thin wrapper around the `deepl` library.
 5. Output writers: `write_tmx`, `write_xliff`.
-6. Analysis + routing: `compute_stats`, `write_stats`, `resolve_output_dirs`, `output_paths`.
+6. Analysis + routing: `compute_stats`, `write_stats`, `output_paths`.
 7. `process_file` — orchestration (read → segment → translate → write).
 8. Config: `load_config`, `save_config`.
 9. `launch_gui` — the tkinter interface.
@@ -39,11 +39,10 @@ There is no build step and no test suite yet.
   returns results in the same order, giving clean source↔target pairs for TMX/XLIFF.
   `split_sentences="0"` is set because the text is already segmented. Never merge or
   reorder segments between source and translation.
-- **Output routing.** `resolve_output_dirs` derives the project folder from the
-  source file (the folder above `Translatables`) and routes TMX/XLIFF to
-  `Reference files` and the analysis to `Statistics`. A manual mode sends everything
-  to one chosen folder. `output_paths` is the single source of truth for filenames —
-  both the GUI conflict check and `process_file` call it, so they must stay in sync.
+- **Output routing.** The user always picks the output folder by hand; TMX, XLIFF
+  and the analysis all go into that one folder. There is no automatic project-folder
+  detection. `output_paths` is the single source of truth for filenames — both the
+  GUI conflict check and `process_file` call it, so they must stay in sync.
 - **Overwrite protection.** The GUI checks for existing target files *before*
   starting the worker thread and asks per file (a dialog may only run on the main
   thread). Skipped paths are passed to `process_file` as `skip`. If both TMX and

@@ -299,46 +299,30 @@ def write_stats(out_path, docx_name, src_xml, tgt_xml, stats):
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def resolve_output_dirs(docx_path, mode, manual_dir=None):
-    """Bepaalt (reference_dir, statistics_dir).
-    mode 'auto': leidt de projectmap af uit het bronbestand (map boven
-    'Translatables'); anders wordt de map van het bestand als projectmap gebruikt.
-    mode 'manual': alles gaat naar de opgegeven map."""
-    p = Path(docx_path)
-    if mode == "manual":
-        if not manual_dir:
-            raise ValueError("Geen uitvoermap gekozen.")
-        d = Path(manual_dir)
-        return d, d
-    src_folder = p.parent
-    root = src_folder.parent if src_folder.name.lower() == "translatables" else src_folder
-    return root / "Reference files", root / "Statistics"
-
-
-def output_paths(docx_path, ref_dir, stats_dir, src_name, tgt_name):
-    """Geeft de doelpaden {'tmx','xliff','stats'}. Zowel de GUI (conflictcheck)
-    als process_file gebruiken deze functie, zodat de paden altijd identiek zijn."""
+def output_paths(docx_path, out_dir, src_name, tgt_name):
+    """Geeft de doelpaden {'tmx','xliff','stats'}, allemaal in out_dir. Zowel de
+    GUI (conflictcheck) als process_file gebruiken deze functie, zodat de paden
+    altijd identiek zijn."""
     src_xml = LANGUAGES[src_name][2]
     tgt_xml = LANGUAGES[tgt_name][2]
     stem = Path(docx_path).stem
     tag = f"{src_xml}-{tgt_xml}"
-    ref_dir = Path(ref_dir)
-    stats_dir = Path(stats_dir) if stats_dir else ref_dir
+    out_dir = Path(out_dir)
     return {
-        "tmx": ref_dir / f"{stem}_{tag}.tmx",
-        "xliff": ref_dir / f"{stem}_{tag}.xlf",
-        "stats": stats_dir / f"{stem}_analyse.txt",
+        "tmx": out_dir / f"{stem}_{tag}.tmx",
+        "xliff": out_dir / f"{stem}_{tag}.xlf",
+        "stats": out_dir / f"{stem}_analyse.txt",
     }
 
 
-def process_file(docx_path, api_key, src_name, tgt_name, ref_dir, stats_dir=None,
+def process_file(docx_path, api_key, src_name, tgt_name, out_dir,
                  formality="default", make_tmx=True, make_xliff=True,
                  make_stats=True, skip=None, log=print, progress=None):
     src_deepl, _src_tgtcode, src_xml = LANGUAGES[src_name]
     _t_src, tgt_deepl, tgt_xml = LANGUAGES[tgt_name]
 
     docx_path = Path(docx_path)
-    paths = output_paths(docx_path, ref_dir, stats_dir, src_name, tgt_name)
+    paths = output_paths(docx_path, out_dir, src_name, tgt_name)
     skip = {str(p) for p in (skip or [])}
 
     do_tmx = make_tmx and str(paths["tmx"]) not in skip
@@ -363,9 +347,11 @@ def process_file(docx_path, api_key, src_name, tgt_name, ref_dir, stats_dir=None
     stats = compute_stats(segments)
     written = []
 
+    if do_tmx or do_xliff or do_stats:
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+
     if do_tmx or do_xliff:
         log(f"  {_fmt(stats[1])} woorden / ~{_fmt(stats[2])} tekens naar DeepL.")
-        Path(ref_dir).mkdir(parents=True, exist_ok=True)
         client = DeepLClient(api_key)
         log(f"Vertalen ({src_deepl} -> {tgt_deepl})...")
         translations = client.translate(
@@ -389,7 +375,6 @@ def process_file(docx_path, api_key, src_name, tgt_name, ref_dir, stats_dir=None
             log(f"XLIFF geschreven -> {paths['xliff']}")
 
     if do_stats:
-        paths["stats"].parent.mkdir(parents=True, exist_ok=True)
         write_stats(paths["stats"], docx_path.name, src_xml, tgt_xml, stats)
         written.append(paths["stats"])
         log(f"Analyse geschreven -> {paths['stats']}")
@@ -493,15 +478,6 @@ def launch_gui():
         row=row, column=2, columnspan=2, sticky="w", **pad)
 
     row += 1
-    ttk.Label(frm, text="Uitvoer:").grid(row=row, column=0, sticky="w", **pad)
-    mode_auto = "Automatisch (Reference files / Statistics)"
-    mode_manual = "Handmatig (kies map)"
-    mode_var = tk.StringVar(value=cfg.get("outmode", mode_auto))
-    mode_box = ttk.Combobox(frm, textvariable=mode_var, state="readonly",
-                            values=[mode_auto, mode_manual], width=34)
-    mode_box.grid(row=row, column=1, columnspan=3, sticky="w", **pad)
-
-    row += 1
     ttk.Label(frm, text="Uitvoermap:").grid(row=row, column=0, sticky="w", **pad)
     outdir_var = tk.StringVar(value=cfg.get("outdir", ""))
     outdir_entry = ttk.Entry(frm, textvariable=outdir_var)
@@ -520,15 +496,6 @@ def launch_gui():
     ttk.Checkbutton(frm, text="Analyse schrijven (segmenten + woorden)",
                     variable=stats_var).grid(row=row, column=0, columnspan=3,
                                              sticky="w", **pad)
-
-    def set_mode_state(*_):
-        manual = mode_var.get().startswith("Handmatig")
-        state = "normal" if manual else "disabled"
-        outdir_entry.configure(state=state)
-        outdir_btn.configure(state=state)
-
-    mode_box.bind("<<ComboboxSelected>>", set_mode_state)
-    set_mode_state()
 
     row += 1
     run_btn = ttk.Button(frm, text="Vertalen")
@@ -574,11 +541,11 @@ def launch_gui():
             pass
         root.after(100, poll_queue)
 
-    def worker(path, key, src, tgt, ref_dir, stats_dir, formality,
+    def worker(path, key, src, tgt, out_dir, formality,
                mk_tmx, mk_xlf, mk_stats, skip):
         try:
             written = process_file(
-                path, key, src, tgt, ref_dir, stats_dir,
+                path, key, src, tgt, out_dir,
                 formality=formality, make_tmx=mk_tmx, make_xliff=mk_xlf,
                 make_stats=mk_stats, skip=skip, log=ui_log, progress=ui_progress,
             )
@@ -601,20 +568,13 @@ def launch_gui():
                                    "Kies minstens een uitvoer (TMX, XLIFF of analyse).")
             return
 
-        mode = "manual" if mode_var.get().startswith("Handmatig") else "auto"
-        if mode == "manual" and not outdir_var.get().strip():
-            messagebox.showwarning(APP_NAME,
-                                   "Kies een uitvoermap of zet 'Uitvoer' op Automatisch.")
-            return
-        try:
-            ref_dir, stats_dir = resolve_output_dirs(
-                path, mode, outdir_var.get().strip() or None)
-        except Exception as exc:  # noqa: BLE001
-            messagebox.showwarning(APP_NAME, str(exc))
+        out_dir = outdir_var.get().strip()
+        if not out_dir:
+            messagebox.showwarning(APP_NAME, "Kies een uitvoermap.")
             return
 
         # Conflictcheck: per reeds bestaand doelbestand vragen om te overschrijven.
-        planned = output_paths(path, ref_dir, stats_dir, src_var.get(), tgt_var.get())
+        planned = output_paths(path, out_dir, src_var.get(), tgt_var.get())
         selected = []
         if tmx_var.get():
             selected.append(planned["tmx"])
@@ -646,7 +606,6 @@ def launch_gui():
             "tmx": tmx_var.get(),
             "xliff": xlf_var.get(),
             "stats": stats_var.get(),
-            "outmode": mode_var.get(),
             "outdir": outdir_var.get(),
             "last_src_dir": str(Path(path).parent),
         })
@@ -659,7 +618,7 @@ def launch_gui():
 
         threading.Thread(
             target=worker,
-            args=(path, key, src_var.get(), tgt_var.get(), ref_dir, stats_dir,
+            args=(path, key, src_var.get(), tgt_var.get(), out_dir,
                   form_var.get(), tmx_var.get(), xlf_var.get(), stats_var.get(),
                   skip),
             daemon=True,

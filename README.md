@@ -33,17 +33,8 @@ languages, and click **Vertalen**. The key can be remembered; it is then stored 
 
 ## Output routing
 
-By default the app follows a fixed project structure and creates missing folders:
-
-```
-Project folder/
-├── Translatables/     <- source .docx is picked from here
-├── Reference files/   <- TMX + XLIFF are written here
-└── Statistics/        <- analysis (.txt) is written here
-```
-
-The project folder is derived from the source file (the folder above
-`Translatables`). A manual mode lets you send all output to a folder of your choice.
+You choose the output folder yourself; the app creates it if it doesn't exist yet.
+TMX, XLIFF and the analysis (.txt) are all written there.
 
 Existing files are never overwritten without a per-file confirmation. If both TMX
 and XLIFF are skipped, DeepL is not called at all (no quota is used).
